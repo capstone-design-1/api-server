@@ -3,6 +3,8 @@ from flask_restx import Resource, Api, Namespace, reqparse
 import validators
 
 from feature.virustotal import Virustotal
+from feature.google_safe_browsing import GoogleSafeBrowsing
+from feature.phishtank import Phishtank
 
 
 api_report = Namespace("API")
@@ -21,8 +23,18 @@ class ApiReport(Resource):
             validate_url = validators.url(args["url"])
 
             if validate_url == True:
-                result = Virustotal().start(args["url"])
-                return {"result" : result}, 200
+                virustotal_reuslt = Virustotal().start(args["url"])
+                google_safe_browsing_result = GoogleSafeBrowsing().start(args["url"])
+                phishtank_result = Phishtank().start(args["url"])
+
+                return {
+                    "result" : {
+                        "virustotal" : virustotal_reuslt,
+                        "google_safe_browsing" : google_safe_browsing_result,
+                        "phishtank" : phishtank_result
+                    }
+                }, 200
+
             else:
                 return {
                     "result" : "error",
