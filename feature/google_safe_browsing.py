@@ -10,7 +10,7 @@ class GoogleSafeBrowsing:
         s = SafeBrowsing(self.getApiKey())
         r = s.lookup_urls([url])
         
-        return r
+        return r[url]
     
     def getApiKey(self) -> str:
         f = open("./config/api.json")

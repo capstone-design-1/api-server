@@ -16,7 +16,7 @@ class Virustotal:
 
         response = requests.request("GET", url, headers=headers)
 
-        return response.json()
+        return response.json()["data"]["attributes"]["last_analysis_stats"]
     
     def getApiKey(self) -> str:
         f = open("./config/api.json")
