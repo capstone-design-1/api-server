@@ -22,7 +22,7 @@ class ApiReport(Resource):
         args = parser.parse_args()
 
         try:
-            if validate_url_check(args["url"]):
+            if validateUrlCheck(args["url"]):
                 virustotal_reuslt = Virustotal().start(args["url"])
                 google_safe_browsing_result = GoogleSafeBrowsing().start(args["url"])
                 phishtank_result = Phishtank().start(args["url"])
@@ -57,7 +57,7 @@ class ApiGoogle(Resource):
         args = parser.parse_args()
 
         try:
-            if validate_url_check(args["url"]):
+            if validateUrlCheck(args["url"]):
                 google_safe_browsing_result = GoogleSafeBrowsing().start(args["url"])
 
                 return {
@@ -85,7 +85,7 @@ class ApiMalwares(Resource):
         args = parser.parse_args()
 
         try:
-            if validate_url_check(args["url"]):
+            if validateUrlCheck(args["url"]):
                 malwares_result = Malwares().start(args["url"])
 
                 return {
@@ -113,7 +113,7 @@ class ApiPhishtank(Resource):
         args = parser.parse_args()
 
         try:
-            if validate_url_check(args["url"]):
+            if validateUrlCheck(args["url"]):
                 phishtank_result = Phishtank().start(args["url"])
 
                 return {
@@ -141,7 +141,7 @@ class ApiVirustotal(Resource):
         args = parser.parse_args()
 
         try:
-            if validate_url_check(args["url"]):
+            if validateUrlCheck(args["url"]):
                 virustotal_reuslt = Virustotal().start(args["url"])
 
                 return {
