@@ -1,4 +1,4 @@
-from flask_sqlalchemy import flask_sqlalchemy
+from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
@@ -7,4 +7,4 @@ class UrlInfo(db.Model):
 
     url_id = db.Column(db.Integer, primary_key = True)
     url = db.Column(db.String)
-    count = db.Coulumn(db.Integer)
+    count = db.Column(db.Integer)

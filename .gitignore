@@ -1,2 +1,3 @@
 ./config/api.json
 *.pyc
+db.sqlite
