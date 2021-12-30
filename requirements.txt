@@ -4,3 +4,4 @@ validators
 pysafebrowsing
 selenium
 bs4
+flask-sqlalchemy
