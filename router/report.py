@@ -36,16 +36,10 @@ class ApiReport(Resource):
                 }, 200
 
             else:
-                return {
-                    "result" : "error",
-                    "message" : "유효하지 않은 URL 입니다."
-                }, 400
+                return return400(2)
 
         except TypeError:
-            return {
-                "result" : "error",
-                "message" : "URL 파라미터가 존재하지 않습니다."
-            }, 400
+            return return400(1)
 
 
 
@@ -65,16 +59,10 @@ class ApiGoogle(Resource):
                 }, 200
             
             else:
-                return {
-                    "result" : "error",
-                    "message" : "유효하지 않은 URL 입니다."
-                }, 400
+                return return400(2)
 
         except TypeError:
-            return {
-                "result" : "error",
-                "message" : "URL 파라미터가 존재하지 않습니다."
-            }, 400
+            return return400(1)
 
 
 @api_report.route("/malwares")
@@ -93,16 +81,10 @@ class ApiMalwares(Resource):
                 }, 200
             
             else:
-                return {
-                    "result" : "error",
-                    "message" : "유효하지 않은 URL 입니다."
-                }, 400
+                return return400(2)
 
         except TypeError:
-            return {
-                "result" : "error",
-                "message" : "URL 파라미터가 존재하지 않습니다."
-            }, 400
+            return return400(1)
     
 
 @api_report.route("/phishtank")
@@ -121,16 +103,10 @@ class ApiPhishtank(Resource):
                 }, 200
             
             else:
-                return {
-                    "result" : "error",
-                    "message" : "유효하지 않은 URL 입니다."
-                }, 400
+                return return400(2)
 
         except TypeError:
-            return {
-                "result" : "error",
-                "message" : "URL 파라미터가 존재하지 않습니다."
-            }, 400
+            return return400(1)
 
 
 @api_report.route("/virustotal")
@@ -149,13 +125,21 @@ class ApiVirustotal(Resource):
                 }, 200
             
             else:
-                return {
-                    "result" : "error",
-                    "message" : "유효하지 않은 URL 입니다."
-                }, 400
+                return return400(2)
 
         except TypeError:
-            return {
-                "result" : "error",
-                "message" : "URL 파라미터가 존재하지 않습니다."
-            }, 400
+            return return400(1)
+
+
+def return400(mode):
+    if mode == 1:
+        return {
+            "result" : "error",
+            "message" : "URL 파라미터가 존재하지 않습니다."
+        }, 400
+
+    elif mode == 2:
+        return {
+            "result" : "error",
+            "message" : "유효하지 않은 URL 입니다."
+        }, 400
