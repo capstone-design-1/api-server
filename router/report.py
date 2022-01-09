@@ -2,6 +2,7 @@ from flask import Flask
 from flask_restx import Resource, Api, Namespace, reqparse
 import validators, json
 import datetime
+import base64
 
 from feature.virustotal import Virustotal
 from feature.google_safe_browsing import GoogleSafeBrowsing
@@ -26,6 +27,11 @@ class ApiReport(Resource):
     def get(self):
         args = parser.parse_args()
         url = args["url"]
+
+        try:
+            url = base64.b64decode(url).decode()
+        except:
+            return return400(2)
 
         if not url:
             return return400(1)
