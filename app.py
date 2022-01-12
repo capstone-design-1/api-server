@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_restx import Resource, Api
 import os
+from werkzeug.serving import WSGIRequestHandler
 
 from router.report import api_report
 from db.models import db
@@ -8,6 +9,7 @@ from feature.func import getApiKey
 
 app = Flask(__name__)
 api = Api(app)
+WSGIRequestHandler.protocol_version = "HTTP/1.1"
 
 api.add_namespace(api_report, "/api/report")
 
