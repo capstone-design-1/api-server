@@ -15,7 +15,9 @@ from db.db import *
 api_report = Namespace("API")
 
 parser = reqparse.RequestParser()
-parser.add_argument("url", type=str, help="분석할 URL")
+parser.add_argument("url", type=str, help="분석할 URL의 base64 encode 값")
+
+MAX_CACHE_MINUTE = 10
 
 # TODO
 # malicious 판단하는 코드 작성 필요
@@ -25,9 +27,12 @@ class ApiReport(Resource):
     @api_report.expect(parser)
 
     def get(self):
+        # 전달 받은 URL 가져오기
         args = parser.parse_args()
         url = args["url"]
 
+
+        # URL -> base64 decoding
         try:
             url = base64.b64decode(url).decode()
         except:
@@ -40,37 +45,45 @@ class ApiReport(Resource):
             return return400(2)
 
 
+        # 해당 URL이 분석된 적이 있는지 확인
         result = UrlInfoTable().select(url)
-
         if result:
             minute = datetime.datetime.now().minute - result[0].date.minute
             UrlInfoTable().updateCount(result[0])
 
-            if minute >= 1:
+            # 10분이 경과 되었을 경우
+            if minute >= MAX_CACHE_MINUTE:
+
+                # 해당 URL을 다시 분석
                 virustotal_reuslt = Virustotal().start(url)
                 google_safe_browsing_result = GoogleSafeBrowsing().start(url)
                 phishtank_result = Phishtank().start(url)
                 malwares_result = Malwares().start(url)
 
+                # 다시 분석된 정보를 update
                 UrlInfoTable().updateDate(result[0])
-
                 VirustotalTable().update(0, json.dumps(virustotal_reuslt), result[0].url_id)
                 MalwaresTable().update(0, json.dumps(malwares_result), result[0].url_id)
                 GoogleTable().update(0, json.dumps(google_safe_browsing_result), result[0].url_id)
                 PhishtankTable().update(0, json.dumps(phishtank_result), result[0].url_id)
 
+            # DB에 저장된 정보를 리턴 (Cache)
             else:
                 virustotal_reuslt = json.loads(VirustotalTable().select(result[0].url_id)[0].detail)
                 google_safe_browsing_result = json.loads(MalwaresTable().select(result[0].url_id)[0].detail)
                 phishtank_result = json.loads(GoogleTable().select(result[0].url_id)[0].detail)
                 malwares_result = json.loads(PhishtankTable().select(result[0].url_id)[0].detail)
 
+        # 새로운 URL일 경우
         else:
+
+            # 정보 조회
             virustotal_reuslt = Virustotal().start(url)
             google_safe_browsing_result = GoogleSafeBrowsing().start(url)
             phishtank_result = Phishtank().start(url)
             malwares_result = Malwares().start(url)
 
+            # 조회된 정보 insert
             UrlInfoTable().insert(url)
             result = UrlInfoTable().select(url)
 

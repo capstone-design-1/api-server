@@ -10,12 +10,12 @@ class UrlInfoTable:
         pass
     
     def insert(self, url: str, count=1):
-        url_info = UrlInfo(url = url, count = count, date=datetime.datetime.utcnow())
+        url_info = UrlInfo(previous_url = url, count = count, date=datetime.datetime.utcnow())
         db.session.add(url_info)
         db.session.commit()
     
     def select(self, url: str):
-        result = UrlInfo.query.filter_by(url=url).all()
+        result = UrlInfo.query.filter_by(previous_url=url).all()
         return result
     
     def updateCount(self,data):
