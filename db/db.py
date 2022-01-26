@@ -9,8 +9,8 @@ class UrlInfoTable:
     def __init__(self):
         pass
     
-    def insert(self, url: str, is_malicious: bool, count=1):
-        url_info = UrlInfo(previous_url = url, malicious = is_malicious, count = count, date=datetime.datetime.utcnow())
+    def insert(self, url: str, is_malicious: bool, image_path, count=1):
+        url_info = UrlInfo(previous_url = url, malicious = is_malicious, site_image = image_path, count = count, date=datetime.datetime.utcnow())
         db.session.add(url_info)
         db.session.commit()
     

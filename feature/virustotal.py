@@ -18,5 +18,4 @@ class Virustotal:
         }
 
         response = requests.request("GET", url, headers=headers)
-
         return response.json()["data"]["attributes"]["last_analysis_stats"]

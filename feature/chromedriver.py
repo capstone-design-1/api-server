@@ -16,6 +16,7 @@ class Chrome:
         })
 
         self.driver = webdriver.Chrome(executable_path="/home/ubuntu/git/api-server/feature/chromedriver", chrome_options=chrome_options)
+        self.driver.set_page_load_timeout(10)
 
         return self.driver
     

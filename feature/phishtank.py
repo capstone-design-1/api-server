@@ -7,10 +7,9 @@ class Phishtank:
     def __init__(self):
         pass
     
-    def start(self, phishing_site: str) -> dict:
+    def start(self, phishing_site: str, driver) -> dict:
         result = {"malicious" : ""}
         
-        driver = Chrome().initDriver()
         driver.get("https://phishtank.org")
         
         driver.find_element_by_name("isaphishurl").clear()

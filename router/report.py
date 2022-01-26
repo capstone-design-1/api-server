@@ -1,14 +1,14 @@
 from flask import Flask
 from flask_restx import Resource, Api, Namespace, reqparse
-import validators, json
-import datetime
-import base64
+import validators, json, datetime, base64, uuid
+from selenium.common.exceptions import TimeoutException, WebDriverException
 
 from feature.virustotal import Virustotal
 from feature.google_safe_browsing import GoogleSafeBrowsing
 from feature.phishtank import Phishtank
 from feature.malwares import Malwares
 from feature.func import *
+from feature.chromedriver import Chrome
 from db.db import *
 
 
@@ -27,10 +27,10 @@ class ApiReport(Resource):
     @api_report.expect(parser)
 
     def get(self):
+
         # 전달 받은 URL 가져오기
         args = parser.parse_args()
         url = args["url"]
-
 
         # URL -> base64 decoding
         try:
@@ -53,10 +53,13 @@ class ApiReport(Resource):
             # 10분이 경과 되었을 경우
             if minute >= MAX_CACHE_MINUTE:
 
+                # chrome driver 객체 생성
+                chrome_driver = Chrome().initDriver()
+
                 # 해당 URL을 다시 분석
                 virustotal_reuslt = Virustotal().start(url)
                 google_safe_browsing_result = GoogleSafeBrowsing().start(url)
-                phishtank_result = Phishtank().start(url)
+                phishtank_result = Phishtank().start(url, chrome_driver)
                 malwares_result = Malwares().start(url)
 
                 # 피싱 사이트 여부 판단
@@ -72,6 +75,8 @@ class ApiReport(Resource):
                 GoogleTable().update(json.dumps(google_safe_browsing_result), result[0].url_id)
                 PhishtankTable().update(json.dumps(phishtank_result), result[0].url_id)
 
+                chrome_driver.quit()
+
             # DB에 저장된 정보를 리턴 (Cache)
             else:
                 virustotal_reuslt = json.loads(VirustotalTable().select(result[0].url_id)[0].detail)
@@ -83,11 +88,17 @@ class ApiReport(Resource):
         # 새로운 URL일 경우
         else:
 
+            # chrome driver 객체 생성
+            chrome_driver = Chrome().initDriver()
+
             # 정보 조회
             virustotal_reuslt = Virustotal().start(url)
             google_safe_browsing_result = GoogleSafeBrowsing().start(url)
-            phishtank_result = Phishtank().start(url)
+            phishtank_result = Phishtank().start(url, chrome_driver)
             malwares_result = Malwares().start(url)
+
+            # 방문한 사이트 스크린 샷
+            image_name = siteScreenShot(chrome_driver, url)
 
             # 피싱 사이트 여부 판단
             is_malicious = checkMalicious({"virustotal" : virustotal_reuslt,
@@ -96,13 +107,15 @@ class ApiReport(Resource):
                                             "malwares" : malwares_result}) 
 
             # 조회된 정보 insert
-            UrlInfoTable().insert(url, is_malicious)
+            UrlInfoTable().insert(url, is_malicious, "/static/images/{}.png".format(image_name))
             result = UrlInfoTable().select(url)
 
             VirustotalTable().insert(json.dumps(virustotal_reuslt), result[0].url_id)
             MalwaresTable().insert(json.dumps(malwares_result), result[0].url_id)
             GoogleTable().insert(json.dumps(google_safe_browsing_result), result[0].url_id)
             PhishtankTable().insert(json.dumps(phishtank_result), result[0].url_id)
+
+            chrome_driver.quit()
 
         return {
             "is_malicious" : is_malicious,
@@ -233,3 +246,15 @@ def checkMalicious(data):
         return True
     else:
         return False
+
+def siteScreenShot(driver, url) -> str:
+    try:
+        driver.get(url)
+        image_name = uuid.uuid1()
+        driver.save_screenshot("./static/images/{}.png".format(image_name))
+    except TimeoutException:
+        image_name = "no_image.png"
+    except WebDriverException:
+        image_name = "no_image.png"
+    
+    return image_name

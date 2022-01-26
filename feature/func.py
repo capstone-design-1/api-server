@@ -23,7 +23,9 @@ def sqlAlchemyToJson(sql_row_data: list) -> dict:
             
             if type(data.__dict__[key]) == datetime.datetime:
                 result[key] = str(data.__dict__[key])
+            elif key == "detail":
+                result[key] = json.loads(data.__dict__[key])
             else:
                 result[key] = data.__dict__[key]
     
-    return json.dumps(result)
+    return result

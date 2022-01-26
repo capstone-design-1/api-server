@@ -11,9 +11,15 @@ class DbSync(Resource):
 
     def get(self):
         url_info_table = UrlInfoTable().selectAll()
-        virustotla_info_table = VirustotalTable().selectAll()
+        virustotal_info_table = VirustotalTable().selectAll()
         malwares_info_table = MalwaresTable().selectAll()
         google_info_table = GoogleTable().selectAll()
         phishtank_info_table = PhishtankTable().selectAll()
 
-        return "1"
+        return {
+            "url_table" : sqlAlchemyToJson(url_info_table),
+            "virustotal" : sqlAlchemyToJson(virustotal_info_table),
+            "malwares" : sqlAlchemyToJson(malwares_info_table),
+            "google" : sqlAlchemyToJson(google_info_table),
+            "phishtank" : sqlAlchemyToJson(phishtank_info_table)
+        }
