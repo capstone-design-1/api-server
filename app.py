@@ -4,6 +4,7 @@ import os
 from werkzeug.serving import WSGIRequestHandler
 
 from router.report import api_report
+from router.db import db_route
 from db.models import db
 from feature.func import getApiKey
 
@@ -12,6 +13,7 @@ api = Api(app)
 WSGIRequestHandler.protocol_version = "HTTP/1.1"
 
 api.add_namespace(api_report, "/api/report")
+api.add_namespace(db_route, "/db")
 
 ##### db init ####
 basedir = os.path.abspath(os.path.dirname(__file__))

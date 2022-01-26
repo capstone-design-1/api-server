@@ -44,7 +44,6 @@ class ApiReport(Resource):
         if not validateUrlCheck(url):
             return return400(2)
 
-
         # 해당 URL이 분석된 적이 있는지 확인
         result = UrlInfoTable().select(url)
         if result:
@@ -60,12 +59,18 @@ class ApiReport(Resource):
                 phishtank_result = Phishtank().start(url)
                 malwares_result = Malwares().start(url)
 
+                # 피싱 사이트 여부 판단
+                is_malicious = checkMalicious({"virustotal" : virustotal_reuslt,
+                                            "google" : google_safe_browsing_result,
+                                            "phishtank" : phishtank_result,
+                                            "malwares" : malwares_result}) 
+
                 # 다시 분석된 정보를 update
-                UrlInfoTable().updateDate(result[0])
-                VirustotalTable().update(0, json.dumps(virustotal_reuslt), result[0].url_id)
-                MalwaresTable().update(0, json.dumps(malwares_result), result[0].url_id)
-                GoogleTable().update(0, json.dumps(google_safe_browsing_result), result[0].url_id)
-                PhishtankTable().update(0, json.dumps(phishtank_result), result[0].url_id)
+                UrlInfoTable().updateData(result[0], is_malicious)
+                VirustotalTable().update(json.dumps(virustotal_reuslt), result[0].url_id)
+                MalwaresTable().update(json.dumps(malwares_result), result[0].url_id)
+                GoogleTable().update(json.dumps(google_safe_browsing_result), result[0].url_id)
+                PhishtankTable().update(json.dumps(phishtank_result), result[0].url_id)
 
             # DB에 저장된 정보를 리턴 (Cache)
             else:
@@ -73,6 +78,7 @@ class ApiReport(Resource):
                 google_safe_browsing_result = json.loads(MalwaresTable().select(result[0].url_id)[0].detail)
                 phishtank_result = json.loads(GoogleTable().select(result[0].url_id)[0].detail)
                 malwares_result = json.loads(PhishtankTable().select(result[0].url_id)[0].detail)
+                is_malicious = result[0].malicious
 
         # 새로운 URL일 경우
         else:
@@ -83,20 +89,29 @@ class ApiReport(Resource):
             phishtank_result = Phishtank().start(url)
             malwares_result = Malwares().start(url)
 
+            # 피싱 사이트 여부 판단
+            is_malicious = checkMalicious({"virustotal" : virustotal_reuslt,
+                                            "google" : google_safe_browsing_result,
+                                            "phishtank" : phishtank_result,
+                                            "malwares" : malwares_result}) 
+
             # 조회된 정보 insert
-            UrlInfoTable().insert(url)
+            UrlInfoTable().insert(url, is_malicious)
             result = UrlInfoTable().select(url)
 
-            VirustotalTable().insert(0, json.dumps(virustotal_reuslt), result[0].url_id)
-            MalwaresTable().insert(0, json.dumps(malwares_result), result[0].url_id)
-            GoogleTable().insert(0, json.dumps(google_safe_browsing_result), result[0].url_id)
-            PhishtankTable().insert(0, json.dumps(phishtank_result), result[0].url_id)
+            VirustotalTable().insert(json.dumps(virustotal_reuslt), result[0].url_id)
+            MalwaresTable().insert(json.dumps(malwares_result), result[0].url_id)
+            GoogleTable().insert(json.dumps(google_safe_browsing_result), result[0].url_id)
+            PhishtankTable().insert(json.dumps(phishtank_result), result[0].url_id)
 
         return {
-            "virustotal" : virustotal_reuslt,
-            "google_safe_browsing" : google_safe_browsing_result,
-            "phishtank" : phishtank_result,
-            "malwares" : malwares_result
+            "is_malicious" : is_malicious,
+            "detail": {
+                "virustotal" : virustotal_reuslt,
+                "google_safe_browsing" : google_safe_browsing_result,
+                "phishtank" : phishtank_result,
+                "malwares" : malwares_result
+            }
         }, 200
 
 
@@ -201,3 +216,20 @@ def return400(*args):
             "result" : "error",
             "message" : "유효하지 않은 URL 입니다."
         }, 400
+
+def checkMalicious(data):
+    count = 0
+
+    if data["virustotal"]["malicious"] != 0:
+        count += 1
+    if data["malwares"]["malicious"] != 0:
+        count += 1
+    if data["google"]["malicious"] == True:
+        count += 1
+    if data["phishtank"]["malicious"] == True:
+        count += 1
+    
+    if count != 0:
+        return True
+    else:
+        return False

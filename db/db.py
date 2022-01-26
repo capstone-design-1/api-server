@@ -9,8 +9,8 @@ class UrlInfoTable:
     def __init__(self):
         pass
     
-    def insert(self, url: str, count=1):
-        url_info = UrlInfo(previous_url = url, count = count, date=datetime.datetime.utcnow())
+    def insert(self, url: str, is_malicious: bool, count=1):
+        url_info = UrlInfo(previous_url = url, malicious = is_malicious, count = count, date=datetime.datetime.utcnow())
         db.session.add(url_info)
         db.session.commit()
     
@@ -18,13 +18,17 @@ class UrlInfoTable:
         result = UrlInfo.query.filter_by(previous_url=url).all()
         return result
     
-    def updateCount(self,data):
+    def updateCount(self, data):
         data.count += 1
         db.session.commit()
     
-    def updateDate(self, data):
+    def updateData(self, data, is_malicious: bool):
         data.date = datetime.datetime.utcnow()
+        data.is_malicious = is_malicious
         db.session.commit()
+    
+    def selectAll(self):
+        return UrlInfo.query.all()
 
 
 class VirustotalTable:
@@ -35,16 +39,18 @@ class VirustotalTable:
         result = VirustotalInfo.query.filter_by(url_id=url_id).all()
         return result
 
-    def insert(self, malicious: int, detail: str, url_id: int):
-        virustotal_info = VirustotalInfo(malicious=malicious, detail=detail, url_id=url_id)
+    def insert(self, detail: str, url_id: int):
+        virustotal_info = VirustotalInfo(detail=detail, url_id=url_id)
         db.session.add(virustotal_info)
         db.session.commit()
 
-    def update(self, malicious: int, detail: str, url_id: int):
+    def update(self, detail: str, url_id: int):
         result = VirustotalInfo.query.filter_by(url_id=url_id).first()
-        result.malicious = malicious
         result.detail = detail
         db.session.commit()
+    
+    def selectAll(self):
+        return VirustotalInfo.query.all()
 
 
 class MalwaresTable:
@@ -55,17 +61,18 @@ class MalwaresTable:
         result = MalwaresInfo.query.filter_by(url_id=url_id).all()
         return result
 
-    def insert(self, malicious: int, detail: str, url_id: int):
-        malwares_info = MalwaresInfo(malicious=malicious, detail=detail, url_id=url_id)
+    def insert(self, detail: str, url_id: int):
+        malwares_info = MalwaresInfo(detail=detail, url_id=url_id)
         db.session.add(malwares_info)
         db.session.commit()
 
-    def update(self, malicious: int, detail: str, url_id: int):
+    def update(self, detail: str, url_id: int):
         result = MalwaresInfo.query.filter_by(url_id=url_id).first()
-        result.malicious = malicious
         result.detail = detail
         db.session.commit()
 
+    def selectAll(self):
+        return MalwaresInfo.query.all()
 
 class GoogleTable:
     def __init__(self):
@@ -75,16 +82,18 @@ class GoogleTable:
         result = GoogleInfo.query.filter_by(url_id=url_id).all()
         return result
 
-    def insert(self, malicious: int, detail: str, url_id: int):
-        google_info = GoogleInfo(malicious=malicious, detail=detail, url_id=url_id)
+    def insert(self, detail: str, url_id: int):
+        google_info = GoogleInfo(detail=detail, url_id=url_id)
         db.session.add(google_info)
         db.session.commit()
     
-    def update(self, malicious: int, detail: str, url_id: int):
+    def update(self, detail: str, url_id: int):
         result = GoogleInfo.query.filter_by(url_id=url_id).first()
-        result.malicious = malicious
         result.detail = detail
         db.session.commit()
+    
+    def selectAll(self):
+        return GoogleInfo.query.all()
 
 
 class PhishtankTable:
@@ -95,13 +104,15 @@ class PhishtankTable:
         result = PhishtankInfo.query.filter_by(url_id=url_id).all()
         return result
     
-    def insert(self, malicious: int, detail: str, url_id: int):
-        phishtank_info = PhishtankInfo(malicious=malicious, detail=detail, url_id=url_id)
+    def insert(self, detail: str, url_id: int):
+        phishtank_info = PhishtankInfo(detail=detail, url_id=url_id)
         db.session.add(phishtank_info)
         db.session.commit()
     
-    def update(self, malicious: int, detail: str, url_id: int):
+    def update(self, detail: str, url_id: int):
         result = PhishtankInfo.query.filter_by(url_id=url_id).first()
-        result.malicious = malicious
         result.detail = detail
         db.session.commit()
+    
+    def selectAll(self):
+        return PhishtankInfo.query.all()
