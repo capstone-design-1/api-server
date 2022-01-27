@@ -13,19 +13,23 @@ def getApiKey(key: str) -> str:
     return api_key[key]
 
 
-def sqlAlchemyToJson(sql_row_data: list) -> dict:
-    result = dict()
+def sqlAlchemyToJson(sql_row_data: list) -> list:
+    result = list()
+    index = 0
 
     for data in sql_row_data:
+        result.append(dict())
         for key in data.__dict__.keys():
             if key == "_sa_instance_state":
                 continue
             
             if type(data.__dict__[key]) == datetime.datetime:
-                result[key] = str(data.__dict__[key])
+                result[index][key] = str(data.__dict__[key])
             elif key == "detail":
-                result[key] = json.loads(data.__dict__[key])
+                result[index][key] = json.loads(data.__dict__[key])
             else:
-                result[key] = data.__dict__[key]
+                result[index][key] = data.__dict__[key]
+        
+        index += 1
     
     return result
