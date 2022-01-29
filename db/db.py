@@ -9,7 +9,7 @@ class UrlInfoTable:
     def __init__(self):
         pass
     
-    def insert(self, url: str, is_malicious: bool, image_path, count=1):
+    def insert(self, url: str, is_malicious: __init__, image_path, count=1):
         url_info = UrlInfo(previous_url = url, malicious = is_malicious, site_image = image_path, count = count, date=datetime.datetime.utcnow())
         db.session.add(url_info)
         db.session.commit()
@@ -22,7 +22,7 @@ class UrlInfoTable:
         data.count += 1
         db.session.commit()
     
-    def updateData(self, data, is_malicious: bool):
+    def updateData(self, data, is_malicious: int):
         data.date = datetime.datetime.utcnow()
         data.is_malicious = is_malicious
         db.session.commit()

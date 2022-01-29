@@ -10,7 +10,7 @@ class UrlInfo(db.Model):
     destination_url = db.Column(db.String)
     count = db.Column(db.Integer, default=1)
     date = db.Column(db.DateTime)
-    malicious = db.Column(db.Boolean, default = False)
+    malicious = db.Column(db.Integer, default = False)
     site_image = db.Column(db.String)
 
 

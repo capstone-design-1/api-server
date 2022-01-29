@@ -230,7 +230,7 @@ def return400(*args):
             "message" : "유효하지 않은 URL 입니다."
         }, 400
 
-def checkMalicious(data):
+def checkMalicious(data) -> int:
     count = 0
 
     if data["virustotal"]["malicious"] != 0:
@@ -243,9 +243,9 @@ def checkMalicious(data):
         count += 1
     
     if count != 0:
-        return True
+        return 1
     else:
-        return False
+        return 0
 
 def siteScreenShot(driver, url) -> str:
     try:
