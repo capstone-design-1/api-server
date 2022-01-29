@@ -48,6 +48,7 @@ class ApiReport(Resource):
         result = UrlInfoTable().select(url)
         if result:
             minute = datetime.datetime.now().minute - result[0].date.minute
+            image_name = result[0].site_image
             UrlInfoTable().updateCount(result[0])
 
             # 10분이 경과 되었을 경우
@@ -98,7 +99,7 @@ class ApiReport(Resource):
             malwares_result = Malwares().start(url)
 
             # 방문한 사이트 스크린 샷
-            image_name = siteScreenShot(chrome_driver, url)
+            image_name = "/static/images/{}.png".format(siteScreenShot(chrome_driver, url))
 
             # 피싱 사이트 여부 판단
             is_malicious = checkMalicious({"virustotal" : virustotal_reuslt,
@@ -107,7 +108,7 @@ class ApiReport(Resource):
                                             "malwares" : malwares_result}) 
 
             # 조회된 정보 insert
-            UrlInfoTable().insert(url, is_malicious, "/static/images/{}.png".format(image_name))
+            UrlInfoTable().insert(url, is_malicious, image_name)
             result = UrlInfoTable().select(url)
 
             VirustotalTable().insert(json.dumps(virustotal_reuslt), result[0].url_id)
@@ -118,6 +119,8 @@ class ApiReport(Resource):
             chrome_driver.quit()
 
         return {
+            "url" : url,
+            "site_image" : image_name,
             "is_malicious" : is_malicious,
             "detail": {
                 "virustotal" : virustotal_reuslt,
