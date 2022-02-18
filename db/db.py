@@ -18,6 +18,13 @@ class UrlInfoTable:
         result = UrlInfo.query.filter_by(previous_url=url).all()
         return result
     
+    def selectLimit(self, limit: int):
+        result = UrlInfo.query.limit(limit).all()
+        return result
+    
+    def selectAll(self):
+        return UrlInfo.query.all()
+    
     def updateCount(self, data):
         data.count += 1
         db.session.commit()
@@ -26,9 +33,6 @@ class UrlInfoTable:
         data.date = datetime.datetime.utcnow()
         data.is_malicious = is_malicious
         db.session.commit()
-    
-    def selectAll(self):
-        return UrlInfo.query.all()
 
 
 class VirustotalTable:
@@ -38,6 +42,13 @@ class VirustotalTable:
     def select(self, url_id: int):
         result = VirustotalInfo.query.filter_by(url_id=url_id).all()
         return result
+    
+    def selectLimit(self, limit: int):
+        result = VirustotalInfo.query.limit(limit).all()
+        return result
+    
+    def selectAll(self):
+        return VirustotalInfo.query.all()
 
     def insert(self, detail: str, url_id: int):
         virustotal_info = VirustotalInfo(detail=detail, url_id=url_id)
@@ -48,9 +59,6 @@ class VirustotalTable:
         result = VirustotalInfo.query.filter_by(url_id=url_id).first()
         result.detail = detail
         db.session.commit()
-    
-    def selectAll(self):
-        return VirustotalInfo.query.all()
 
 
 class MalwaresTable:
@@ -60,6 +68,13 @@ class MalwaresTable:
     def select(self, url_id: int):
         result = MalwaresInfo.query.filter_by(url_id=url_id).all()
         return result
+
+    def selectLimit(self, limit: int):
+        result = MalwaresInfo.query.limit(limit).all()
+        return result
+    
+    def selectAll(self):
+        return MalwaresInfo.query.all()
 
     def insert(self, detail: str, url_id: int):
         malwares_info = MalwaresInfo(detail=detail, url_id=url_id)
@@ -71,8 +86,6 @@ class MalwaresTable:
         result.detail = detail
         db.session.commit()
 
-    def selectAll(self):
-        return MalwaresInfo.query.all()
 
 class GoogleTable:
     def __init__(self):
@@ -81,6 +94,13 @@ class GoogleTable:
     def select(self, url_id: int):
         result = GoogleInfo.query.filter_by(url_id=url_id).all()
         return result
+
+    def selectLimit(self, limit: int):
+        result = GoogleInfo.query.limit(limit).all()
+        return result
+    
+    def selectAll(self):
+        return GoogleInfo.query.all()
 
     def insert(self, detail: str, url_id: int):
         google_info = GoogleInfo(detail=detail, url_id=url_id)
@@ -91,9 +111,6 @@ class GoogleTable:
         result = GoogleInfo.query.filter_by(url_id=url_id).first()
         result.detail = detail
         db.session.commit()
-    
-    def selectAll(self):
-        return GoogleInfo.query.all()
 
 
 class PhishtankTable:
@@ -104,6 +121,13 @@ class PhishtankTable:
         result = PhishtankInfo.query.filter_by(url_id=url_id).all()
         return result
     
+    def selectLimit(self, limit: int):
+        result = PhishtankInfo.query.limit(limit).all()
+        return result
+    
+    def selectAll(self):
+        return PhishtankInfo.query.all()
+    
     def insert(self, detail: str, url_id: int):
         phishtank_info = PhishtankInfo(detail=detail, url_id=url_id)
         db.session.add(phishtank_info)
@@ -113,6 +137,3 @@ class PhishtankTable:
         result = PhishtankInfo.query.filter_by(url_id=url_id).first()
         result.detail = detail
         db.session.commit()
-    
-    def selectAll(self):
-        return PhishtankInfo.query.all()

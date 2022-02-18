@@ -17,6 +17,7 @@ class DbSync(Resource):
         phishtank_info_table = PhishtankTable().selectAll()
 
         return {
+            "count" : len(url_info_table),
             "url_table" : sqlAlchemyToJson(url_info_table),
             "virustotal" : sqlAlchemyToJson(virustotal_info_table),
             "malwares" : sqlAlchemyToJson(malwares_info_table),
