@@ -1,5 +1,6 @@
-from flask import Flask
+from flask import Flask, Response
 from flask_restx import Resource, Api, Namespace, reqparse
+import json
 
 from db.db import *
 from feature.func import sqlAlchemyToJson
@@ -44,7 +45,7 @@ class ApiReport(Resource):
                 }
             })
 
-        return return_data
+        return Response(json.dumps(return_data), mimetype="application/json")
 
         
 def returnError(message: str, status_code: int):
