@@ -16,6 +16,7 @@ api_report = Namespace("API")
 
 parser = reqparse.RequestParser()
 parser.add_argument("url", type=str, help="분석할 URL의 base64 encode 값")
+parser.add_argument("uuid", type=str, help="디바이스에 할당된 UUID")
 
 MAX_CACHE_MINUTE = 10
 
@@ -31,6 +32,7 @@ class ApiReport(Resource):
         # 전달 받은 URL 가져오기
         args = parser.parse_args()
         url = args["url"]
+        uuid = args["uuid"]
 
         # URL -> base64 decoding
         try:
@@ -40,7 +42,8 @@ class ApiReport(Resource):
 
         if not url:
             return return400(1)
-
+        if not uuid:
+            return return400(3)
         if not validateUrlCheck(url):
             return return400(2)
 
@@ -86,6 +89,12 @@ class ApiReport(Resource):
                 malwares_result = json.loads(PhishtankTable().select(result[0].url_id)[0].detail)
                 is_malicious = result[0].malicious
 
+            # UUID 값 업데이트
+            if uuid not in result[0].uuid:
+                update_uuid_value = result[0].uuid + "," + uuid
+                UrlInfoTable().updateUUID(result[0], update_uuid_value)
+
+
         # 새로운 URL일 경우
         else:
 
@@ -108,7 +117,7 @@ class ApiReport(Resource):
                                             "malwares" : malwares_result}) 
 
             # 조회된 정보 insert
-            UrlInfoTable().insert(url, is_malicious, image_name)
+            UrlInfoTable().insert(url, is_malicious, image_name, uuid)
             result = UrlInfoTable().select(url)
 
             VirustotalTable().insert(json.dumps(virustotal_reuslt), result[0].url_id)
@@ -231,6 +240,12 @@ def return400(*args):
         return {
             "result" : "error",
             "message" : "유효하지 않은 URL 입니다."
+        }, 400
+    
+    elif args[0] == 3:
+        return {
+            "result" : "error",
+            "message" : "uuid 값이 비어 있습니다."
         }, 400
 
 def checkMalicious(data) -> int:

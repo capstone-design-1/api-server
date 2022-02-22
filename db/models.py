@@ -12,6 +12,7 @@ class UrlInfo(db.Model):
     date = db.Column(db.DateTime)
     malicious = db.Column(db.Integer, default = False)
     site_image = db.Column(db.String)
+    uuid = db.Column(db.String)
 
 
 class VirustotalInfo(db.Model):

@@ -9,8 +9,8 @@ class UrlInfoTable:
     def __init__(self):
         pass
     
-    def insert(self, url: str, is_malicious: __init__, image_path, count=1):
-        url_info = UrlInfo(previous_url = url, malicious = is_malicious, site_image = image_path, count = count, date=datetime.datetime.utcnow())
+    def insert(self, url: str, is_malicious: __init__, image_path, uuid, count=1):
+        url_info = UrlInfo(previous_url = url, malicious = is_malicious, site_image = image_path, count = count, date=datetime.datetime.utcnow(), uuid=uuid)
         db.session.add(url_info)
         db.session.commit()
     
@@ -18,8 +18,8 @@ class UrlInfoTable:
         result = UrlInfo.query.filter_by(previous_url=url).all()
         return result
     
-    def selectLimit(self, limit: int):
-        result = UrlInfo.query.limit(limit).all()
+    def selectSearch(self, limit: int, uuid: str):
+        result = UrlInfo.query.filter(UrlInfo.uuid.like("%{}%".format(uuid))).limit(limit).all()
         return result
     
     def selectAll(self):
@@ -33,6 +33,10 @@ class UrlInfoTable:
         data.date = datetime.datetime.utcnow()
         data.is_malicious = is_malicious
         db.session.commit()
+    
+    def updateUUID(self, data, uuid: str):
+        data.uuid = uuid
+        db.session.commit()
 
 
 class VirustotalTable:
@@ -43,8 +47,8 @@ class VirustotalTable:
         result = VirustotalInfo.query.filter_by(url_id=url_id).all()
         return result
     
-    def selectLimit(self, limit: int):
-        result = VirustotalInfo.query.limit(limit).all()
+    def selectUrlId(self, limit: int, url_id: int):
+        result = VirustotalInfo.query.filter_by(url_id=url_id).limit(limit).all()
         return result
     
     def selectAll(self):
@@ -69,8 +73,8 @@ class MalwaresTable:
         result = MalwaresInfo.query.filter_by(url_id=url_id).all()
         return result
 
-    def selectLimit(self, limit: int):
-        result = MalwaresInfo.query.limit(limit).all()
+    def selectUrlId(self, limit: int, url_id: int):
+        result = MalwaresInfo.query.filter_by(url_id=url_id).limit(limit).all()
         return result
     
     def selectAll(self):
@@ -95,8 +99,8 @@ class GoogleTable:
         result = GoogleInfo.query.filter_by(url_id=url_id).all()
         return result
 
-    def selectLimit(self, limit: int):
-        result = GoogleInfo.query.limit(limit).all()
+    def selectUrlId(self, limit: int, url_id: int):
+        result = GoogleInfo.query.filter_by(url_id=url_id).limit(limit).all()
         return result
     
     def selectAll(self):
@@ -121,8 +125,8 @@ class PhishtankTable:
         result = PhishtankInfo.query.filter_by(url_id=url_id).all()
         return result
     
-    def selectLimit(self, limit: int):
-        result = PhishtankInfo.query.limit(limit).all()
+    def selectUrlId(self, limit: int, url_id: int):
+        result = PhishtankInfo.query.filter_by(url_id=url_id).limit(limit).all()
         return result
     
     def selectAll(self):

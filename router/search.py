@@ -9,6 +9,7 @@ search = Namespace("Search")
 
 parser = reqparse.RequestParser()
 parser.add_argument("limit", type=int, help="전달 받을 목록 개수")
+parser.add_argument("uuid", type=str, help="디바이스에 할당된 UUID")
 
 
 @search.route("/all")
@@ -21,13 +22,10 @@ class ApiReport(Resource):
             args["limit"] = 10
         if args["limit"] <= 0:
             return returnError("limit 값은 1 이상 이어야 합니다.", 400)
+        if not args["uuid"]:
+            return returnError("uuid 값이 비어 있습니다.", 400)
         
-        url_table_result = sqlAlchemyToJson(UrlInfoTable().selectLimit(args["limit"]))
-        virustotal_table_result = sqlAlchemyToJson(VirustotalTable().selectLimit(args["limit"]))
-        malwares_table_result = sqlAlchemyToJson(MalwaresTable().selectLimit(args["limit"]))
-        google_table_result = sqlAlchemyToJson(GoogleTable().selectLimit(args["limit"]))
-        phishtank_table_result = sqlAlchemyToJson(PhishtankTable().selectLimit(args["limit"]))
-
+        url_table_result = sqlAlchemyToJson(UrlInfoTable().selectSearch(args["limit"], args["uuid"]))
         return_data = []
 
         for i in range(len(url_table_result))[::-1]:
@@ -38,10 +36,10 @@ class ApiReport(Resource):
                 "malicious" : url_table_result[i]["malicious"],
                 "init_search_date" : url_table_result[i]["date"],
                 "detail" : {
-                    "virustotal" : virustotal_table_result[i]["detail"],
-                    "malwares" : malwares_table_result[i]["detail"],
-                    "google" : google_table_result[i]["detail"],
-                    "phishtank" : phishtank_table_result[i]["detail"]
+                    "virustotal" : sqlAlchemyToJson(VirustotalTable().selectUrlId(args["limit"], url_table_result[i]["url_id"]))[0]["detail"],
+                    "malwares" : sqlAlchemyToJson(MalwaresTable().selectUrlId(args["limit"], url_table_result[i]["url_id"]))[0]["detail"],
+                    "google" : sqlAlchemyToJson(GoogleTable().selectUrlId(args["limit"], url_table_result[i]["url_id"]))[0]["detail"],
+                    "phishtank" : sqlAlchemyToJson(PhishtankTable().selectUrlId(args["limit"], url_table_result[i]["url_id"]))[0]["detail"]
                 }
             })
 
