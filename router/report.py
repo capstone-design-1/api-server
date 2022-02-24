@@ -7,6 +7,7 @@ from feature.virustotal import Virustotal
 from feature.google_safe_browsing import GoogleSafeBrowsing
 from feature.phishtank import Phishtank
 from feature.malwares import Malwares
+from feature.ipqualityscore import IpQualityScore
 from feature.func import *
 from feature.chromedriver import Chrome
 from db.db import *
@@ -65,12 +66,14 @@ class ApiReport(Resource):
                 google_safe_browsing_result = GoogleSafeBrowsing().start(url)
                 phishtank_result = Phishtank().start(url, chrome_driver)
                 malwares_result = Malwares().start(url)
+                ipqualityscore_result = IpQualityScore().start(url)
 
                 # 피싱 사이트 여부 판단
                 is_malicious = checkMalicious({"virustotal" : virustotal_reuslt,
                                             "google" : google_safe_browsing_result,
                                             "phishtank" : phishtank_result,
-                                            "malwares" : malwares_result}) 
+                                            "malwares" : malwares_result,
+                                            "ipqualityscore" : ipqualityscore_result}) 
 
                 # 다시 분석된 정보를 update
                 UrlInfoTable().updateData(result[0], is_malicious)
@@ -78,6 +81,7 @@ class ApiReport(Resource):
                 MalwaresTable().update(json.dumps(malwares_result), result[0].url_id)
                 GoogleTable().update(json.dumps(google_safe_browsing_result), result[0].url_id)
                 PhishtankTable().update(json.dumps(phishtank_result), result[0].url_id)
+                IpQualityScoreTable().update(json.dumps(phishtank_result), result[0].url_id)
 
                 chrome_driver.quit()
 
@@ -87,6 +91,7 @@ class ApiReport(Resource):
                 google_safe_browsing_result = json.loads(MalwaresTable().select(result[0].url_id)[0].detail)
                 phishtank_result = json.loads(GoogleTable().select(result[0].url_id)[0].detail)
                 malwares_result = json.loads(PhishtankTable().select(result[0].url_id)[0].detail)
+                ipqualityscore_result = json.loads(IpQualityScoreTable().select(result[0].url_id)[0].detail)
                 is_malicious = result[0].malicious
 
             # UUID 값 업데이트
@@ -106,6 +111,7 @@ class ApiReport(Resource):
             google_safe_browsing_result = GoogleSafeBrowsing().start(url)
             phishtank_result = Phishtank().start(url, chrome_driver)
             malwares_result = Malwares().start(url)
+            ipqualityscore_result = IpQualityScore().start(url)
 
             # 방문한 사이트 스크린 샷
             image_name = "/static/images/{}.png".format(siteScreenShot(chrome_driver, url))
@@ -114,7 +120,8 @@ class ApiReport(Resource):
             is_malicious = checkMalicious({"virustotal" : virustotal_reuslt,
                                             "google" : google_safe_browsing_result,
                                             "phishtank" : phishtank_result,
-                                            "malwares" : malwares_result}) 
+                                            "malwares" : malwares_result, 
+                                            "ipqualityscore" : ipqualityscore_result}) 
 
             # 조회된 정보 insert
             UrlInfoTable().insert(url, is_malicious, image_name, uuid)
@@ -124,6 +131,7 @@ class ApiReport(Resource):
             MalwaresTable().insert(json.dumps(malwares_result), result[0].url_id)
             GoogleTable().insert(json.dumps(google_safe_browsing_result), result[0].url_id)
             PhishtankTable().insert(json.dumps(phishtank_result), result[0].url_id)
+            IpQualityScoreTable().insert(json.dumps(phishtank_result), result[0].url_id)
 
             chrome_driver.quit()
 
@@ -135,7 +143,8 @@ class ApiReport(Resource):
                 "virustotal" : virustotal_reuslt,
                 "google_safe_browsing" : google_safe_browsing_result,
                 "phishtank" : phishtank_result,
-                "malwares" : malwares_result
+                "malwares" : malwares_result,
+                "ipqualityscore" : ipqualityscore_result
             }
         }, 200
 
@@ -259,8 +268,10 @@ def checkMalicious(data) -> int:
         count += 1
     if data["phishtank"]["malicious"] == True:
         count += 1
+    if data["ipqualityscore"]["malicious"] == True:
+        count += 1
     
-    if count != 0:
+    if count > 2:
         return 1
     else:
         return 0

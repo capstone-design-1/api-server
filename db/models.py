@@ -45,3 +45,10 @@ class PhishtankInfo(db.Model):
     p_id = db.Column(db.Integer, primary_key = True)
     detail = db.Column(db.String)
     url_id = db.Column(db.Integer, db.ForeignKey("url_info.url_id"), nullable=False)
+
+class IpQualityScoreInfo(db.Model):
+    __tablename__ = "ipqualityscore_info"
+
+    i_id = db.Column(db.Integer, primary_key = True)
+    detail = db.Column(db.String)
+    url_id = db.Column(db.Integer, db.ForeignKey("url_info.url_id"), nullable=False)

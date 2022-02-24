@@ -141,3 +141,29 @@ class PhishtankTable:
         result = PhishtankInfo.query.filter_by(url_id=url_id).first()
         result.detail = detail
         db.session.commit()
+
+
+class IpQualityScoreTable:
+    def __init__(self):
+        pass
+
+    def select(self, url_id: int):
+        result = IpQualityScoreInfo.query.filter_by(url_id=url_id).all()
+        return result
+    
+    def selectUrlId(self, limit: int, url_id: int):
+        result = IpQualityScoreInfo.query.filter_by(url_id=url_id).limit(limit).all()
+        return result
+    
+    def selectAll(self):
+        return IpQualityScoreInfo.query.all()
+    
+    def insert(self, detail: str, url_id: int):
+        phishtank_info = IpQualityScoreInfo(detail=detail, url_id=url_id)
+        db.session.add(phishtank_info)
+        db.session.commit()
+    
+    def update(self, detail: str, url_id: int):
+        result = IpQualityScoreInfo.query.filter_by(url_id=url_id).first()
+        result.detail = detail
+        db.session.commit()
