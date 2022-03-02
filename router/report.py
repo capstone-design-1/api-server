@@ -281,9 +281,11 @@ def siteScreenShot(driver, url) -> str:
         driver.get(url)
         image_name = uuid.uuid1()
         driver.save_screenshot("./static/images/{}.png".format(image_name))
-    except TimeoutException:
-        image_name = "no_image.png"
-    except WebDriverException:
-        image_name = "no_image.png"
+    except TimeoutException as e:
+        print("[!] TimeoutException: " + str(e))
+        image_name = "no_image"
+    except WebDriverException as e:
+        print("[!] WebDriverException: " + str(e))
+        image_name = "no_image"
     
     return image_name
