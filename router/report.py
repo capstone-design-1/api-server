@@ -144,95 +144,6 @@ class ApiReport(Resource):
         }, 200
 
 
-
-@api_report.route("/google")
-class ApiGoogle(Resource):
-    @api_report.expect(parser)
-
-    def get(self):
-        args = parser.parse_args()
-        url = args["url"]
-
-        if not url:
-            return return400(1)
-
-        if validateUrlCheck(url):
-            google_safe_browsing_result = GoogleSafeBrowsing().start(url)
-
-            return {
-                "google_safe_browsing" : google_safe_browsing_result
-            }, 200
-        
-        else:
-            return return400(2)
-
-
-@api_report.route("/malwares")
-class ApiMalwares(Resource):
-    @api_report.expect(parser)
-
-    def get(self):
-        args = parser.parse_args()
-        url = args["url"]
-
-        if not url:
-            return return400(1)
-
-        if validateUrlCheck(url):
-            malwares_result = Malwares().start(url)
-
-            return {
-                "malwares" : malwares_result
-            }, 200
-        
-        else:
-            return return400(2)
-    
-
-@api_report.route("/phishtank")
-class ApiPhishtank(Resource):
-    @api_report.expect(parser)
-
-    def get(self):
-        args = parser.parse_args()
-        url = args["url"]
-
-        if not url:
-            return return400(1)
-
-        if validateUrlCheck(url):
-            phishtank_result = Phishtank().start(url)
-
-            return {
-                "phishtank" : phishtank_result
-            }, 200
-        
-        else:
-            return return400(2)
-
-
-@api_report.route("/virustotal")
-class ApiVirustotal(Resource):
-    @api_report.expect(parser)
-
-    def get(self):
-        args = parser.parse_args()
-        url = args["url"]
-
-        if not url:
-            return return400(1)
-
-        if validateUrlCheck(url):
-            virustotal_reuslt = Virustotal().start(url)
-
-            return {
-                "virustotal" : virustotal_reuslt
-            }, 200
-        
-        else:
-            return return400(2)
-
-
 def return400(*args):
     if args[0] == 1:
         return {
@@ -251,6 +162,7 @@ def return400(*args):
             "result" : "error",
             "message" : "uuid 값이 비어 있습니다."
         }, 400
+
 
 def checkMalicious(data) -> int:
     count = 0
@@ -271,6 +183,7 @@ def checkMalicious(data) -> int:
     else:
         return 0
 
+
 def siteScreenShot(url: str, return_dict, key: str) -> str:
     try:
         driver = Chrome().initDriver()
@@ -281,13 +194,14 @@ def siteScreenShot(url: str, return_dict, key: str) -> str:
 
     except TimeoutException as e:
         print("[!] TimeoutException: " + str(e))
-        image_path = "no_image"
+        image_path = "./static/images/no_image.png"
 
     except WebDriverException as e:
         print("[!] WebDriverException: " + str(e))
-        image_path = "no_image"
+        image_path = "./static/images/no_image.png"
     
-    return_dict[key] = image_path if image_path.find(".") == -1 else image_path[1:]
+    return_dict[key] = image_path[1:]
+    
 
 def getInfoFromApiServer(url):
     manager = multiprocessing.Manager()
