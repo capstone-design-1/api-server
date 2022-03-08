@@ -2,6 +2,7 @@ from flask import Flask
 from flask_restx import Resource, Api, Namespace, reqparse
 import validators, json, datetime, base64, uuid
 from selenium.common.exceptions import TimeoutException, WebDriverException
+import multiprocessing
 
 from feature.virustotal import Virustotal
 from feature.google_safe_browsing import GoogleSafeBrowsing
@@ -289,3 +290,33 @@ def siteScreenShot(driver, url) -> str:
         image_name = "no_image"
     
     return image_name
+
+def getInfoFromApiServer(url):
+    # chrome driver 객체 생성
+    chrome_driver = Chrome().initDriver()
+
+    th1 = Process(target=Phishtank().start, args=(url))
+    th2 = Process(target=Malwares().start, args=(url))
+    th3 = Process(target=Virustotal().start, args=(url))
+    th4 = Process(target=IpQualityScore().start, args=(url))
+    th5 = Process(target=GoogleSafeBrowsing().start, args=(url))
+
+
+
+    with futures.ThreadPoolExecutor() as executor:
+        # 정보 조회
+        virustotal_reuslt = executor.submit(Virustotal().start, (url))
+        google_safe_browsing_result = executor.submit(GoogleSafeBrowsing().start, (url))
+        phishtank_result = executor.submit(Phishtank().start, (url, chrome_driver))
+        malwares_result = executor.submit(Malwares().start, (url))
+        ipqualityscore_result = executor.submit(IpQualityScore().start, (url))
+
+        # chrome_driver.quit()
+
+
+
+    print(virustotal_reuslt.result())
+    print(google_safe_browsing_result.result())
+    print(phishtank_result.result())
+    print(malwares_result.result())
+    print(ipqualityscore_result.result())
