@@ -5,3 +5,4 @@ pysafebrowsing
 selenium
 bs4
 flask-sqlalchemy
+webdriver-manager

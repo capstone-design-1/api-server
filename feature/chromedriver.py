@@ -1,4 +1,5 @@
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 
 class Chrome:
     def __init__(self):
@@ -15,7 +16,7 @@ class Chrome:
             "download_restrictions": 3
         })
 
-        self.driver = webdriver.Chrome(executable_path="/home/ubuntu/git/api-server/feature/chromedriver", chrome_options=chrome_options)
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
         self.driver.set_page_load_timeout(10)
 
         return self.driver
