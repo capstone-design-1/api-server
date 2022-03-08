@@ -33,6 +33,11 @@ db.app = app
 db.create_all()
 #### db init end ###
 
+@app.route("/logging")
+def logging():
+    data = open("nohup.out", "r").readlines()
+    return "<br>".join(data)
+
 if __name__ == '__main__':
     if len(sys.argv) == 2 and sys.argv[1] == "debug":
         app.run(debug=True, host="0.0.0.0", port=8080)
