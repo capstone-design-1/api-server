@@ -7,7 +7,7 @@ class Phishtank:
     def __init__(self):
         pass
     
-    def start(self, phishing_site: str) -> dict:
+    def start(self, phishing_site: str, return_dict, key: str) -> dict:
         driver = Chrome().initDriver()
         result = {"malicious" : ""}
         
@@ -24,7 +24,7 @@ class Phishtank:
         
         driver.quit()
 
-        return result
+        return_dict[key] = result
 
 if __name__ == "__main__":
     phishing_site = "https://tclbcp.ru/"

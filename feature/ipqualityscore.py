@@ -10,14 +10,13 @@ class IpQualityScore:
     
     # API Doc
     # https://www.ipqualityscore.com/documentation/malicious-url-scanner-api/overview
-    def start(self, url: str) -> dict:
+    def start(self, url: str, return_dict, key: str) -> dict:
         phishing_site = quote(url, safe="")
         api_key = getApiKey("ipqualityscore")
         url = "https://ipqualityscore.com/api/json/url/{}/{}".format(api_key, phishing_site)
 
         return_data = {"malicious" : self.isMalicious(requests.get(url).json())}
-        
-        return return_data
+        return_dict[key] = return_data
     
     # Standard
     # https://www.ipqualityscore.com/documentation/malicious-url-scanner-api/overview#:~:text=IPQS%2DKEY%3A%20EzDDnaCfS4xkDO2PqO8LdtUB8mbWKili-,Response%20Field%20Definitions,-Quick%20Notes

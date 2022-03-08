@@ -12,6 +12,7 @@ from feature.ipqualityscore import IpQualityScore
 from feature.func import *
 from feature.chromedriver import Chrome
 from db.db import *
+from feature.chromedriver import Chrome
 
 
 api_report = Namespace("API")
@@ -59,32 +60,22 @@ class ApiReport(Resource):
             # 10분이 경과 되었을 경우
             if minute >= MAX_CACHE_MINUTE:
 
-                # chrome driver 객체 생성
-                chrome_driver = Chrome().initDriver()
-
-                # 해당 URL을 다시 분석
-                virustotal_reuslt = Virustotal().start(url)
-                google_safe_browsing_result = GoogleSafeBrowsing().start(url)
-                phishtank_result = Phishtank().start(url, chrome_driver)
-                malwares_result = Malwares().start(url)
-                ipqualityscore_result = IpQualityScore().start(url)
+                analyze_result = getInfoFromApiServer(url)
 
                 # 피싱 사이트 여부 판단
-                is_malicious = checkMalicious({"virustotal" : virustotal_reuslt,
-                                            "google" : google_safe_browsing_result,
-                                            "phishtank" : phishtank_result,
-                                            "malwares" : malwares_result,
-                                            "ipqualityscore" : ipqualityscore_result}) 
+                is_malicious = checkMalicious({"virustotal" : analyze_result['virustotal_reuslt'],
+                                            "google" : analyze_result['google_safe_browsing_result'],
+                                            "phishtank" : analyze_result['phishtank_result'],
+                                            "malwares" : analyze_result['malwares_result'],
+                                            "ipqualityscore" : analyze_result['ipqualityscore_result']})
 
                 # 다시 분석된 정보를 update
                 UrlInfoTable().updateData(result[0], is_malicious)
-                VirustotalTable().update(json.dumps(virustotal_reuslt), result[0].url_id)
-                MalwaresTable().update(json.dumps(malwares_result), result[0].url_id)
-                GoogleTable().update(json.dumps(google_safe_browsing_result), result[0].url_id)
-                PhishtankTable().update(json.dumps(phishtank_result), result[0].url_id)
-                IpQualityScoreTable().update(json.dumps(phishtank_result), result[0].url_id)
-
-                chrome_driver.quit()
+                VirustotalTable().update(json.dumps(analyze_result['virustotal_reuslt']), result[0].url_id)
+                MalwaresTable().update(json.dumps(analyze_result['malwares_result']), result[0].url_id)
+                GoogleTable().update(json.dumps(analyze_result['google_safe_browsing_result']), result[0].url_id)
+                PhishtankTable().update(json.dumps(analyze_result['phishtank_result']), result[0].url_id)
+                IpQualityScoreTable().update(json.dumps(analyze_result['ipqualityscore_result']), result[0].url_id)
 
             # DB에 저장된 정보를 리턴 (Cache)
             else:
@@ -99,53 +90,56 @@ class ApiReport(Resource):
             if uuid not in result[0].uuid:
                 update_uuid_value = result[0].uuid + "," + uuid
                 UrlInfoTable().updateUUID(result[0], update_uuid_value)
+            
+            return {
+                "url" : url,
+                "site_image" : image_name,
+                "is_malicious" : is_malicious,
+                "detail": {
+                    "virustotal" : virustotal_reuslt,
+                    "google_safe_browsing" : google_safe_browsing_result,
+                    "phishtank" : phishtank_result,
+                    "malwares" : malwares_result,
+                    "ipqualityscore" : ipqualityscore_result
+                }
+            }, 200
 
 
         # 새로운 URL일 경우
         else:
 
-            # chrome driver 객체 생성
-            chrome_driver = Chrome().initDriver()
-
-            # 정보 조회
-            virustotal_reuslt = Virustotal().start(url)
-            google_safe_browsing_result = GoogleSafeBrowsing().start(url)
-            phishtank_result = Phishtank().start(url, chrome_driver)
-            malwares_result = Malwares().start(url)
-            ipqualityscore_result = IpQualityScore().start(url)
+            analyze_result = getInfoFromApiServer(url)
 
             # 방문한 사이트 스크린 샷
-            image_name = "/static/images/{}.png".format(siteScreenShot(chrome_driver, url))
+            image_name = analyze_result["screenshot"]
 
             # 피싱 사이트 여부 판단
-            is_malicious = checkMalicious({"virustotal" : virustotal_reuslt,
-                                            "google" : google_safe_browsing_result,
-                                            "phishtank" : phishtank_result,
-                                            "malwares" : malwares_result, 
-                                            "ipqualityscore" : ipqualityscore_result}) 
+            is_malicious = checkMalicious({"virustotal" : analyze_result['virustotal_reuslt'],
+                                            "google" : analyze_result['google_safe_browsing_result'],
+                                            "phishtank" : analyze_result['phishtank_result'],
+                                            "malwares" : analyze_result['malwares_result'], 
+                                            "ipqualityscore" : analyze_result['ipqualityscore_result']}) 
 
             # 조회된 정보 insert
             UrlInfoTable().insert(url, is_malicious, image_name, uuid)
             result = UrlInfoTable().select(url)
 
-            VirustotalTable().insert(json.dumps(virustotal_reuslt), result[0].url_id)
-            MalwaresTable().insert(json.dumps(malwares_result), result[0].url_id)
-            GoogleTable().insert(json.dumps(google_safe_browsing_result), result[0].url_id)
-            PhishtankTable().insert(json.dumps(phishtank_result), result[0].url_id)
-            IpQualityScoreTable().insert(json.dumps(phishtank_result), result[0].url_id)
-
-            chrome_driver.quit()
+            VirustotalTable().insert(json.dumps(analyze_result['virustotal_reuslt']), result[0].url_id)
+            MalwaresTable().insert(json.dumps(analyze_result['malwares_result']), result[0].url_id)
+            GoogleTable().insert(json.dumps(analyze_result['google_safe_browsing_result']), result[0].url_id)
+            PhishtankTable().insert(json.dumps(analyze_result['phishtank_result']), result[0].url_id)
+            IpQualityScoreTable().insert(json.dumps(analyze_result['ipqualityscore_result']), result[0].url_id)
 
         return {
             "url" : url,
             "site_image" : image_name,
             "is_malicious" : is_malicious,
             "detail": {
-                "virustotal" : virustotal_reuslt,
-                "google_safe_browsing" : google_safe_browsing_result,
-                "phishtank" : phishtank_result,
-                "malwares" : malwares_result,
-                "ipqualityscore" : ipqualityscore_result
+                "virustotal" : analyze_result['virustotal_reuslt'],
+                "google_safe_browsing" : analyze_result['google_safe_browsing_result'],
+                "phishtank" : analyze_result['phishtank_result'],
+                "malwares" : analyze_result['malwares_result'],
+                "ipqualityscore" : analyze_result['ipqualityscore_result']
             }
         }, 200
 
@@ -277,46 +271,50 @@ def checkMalicious(data) -> int:
     else:
         return 0
 
-def siteScreenShot(driver, url) -> str:
+def siteScreenShot(url: str, return_dict, key: str) -> str:
     try:
+        driver = Chrome().initDriver()
         driver.get(url)
-        image_name = uuid.uuid1()
-        driver.save_screenshot("./static/images/{}.png".format(image_name))
+
+        image_path = "./static/images/{}.png".format(uuid.uuid1())
+        driver.save_screenshot(image_path)
+
     except TimeoutException as e:
         print("[!] TimeoutException: " + str(e))
-        image_name = "no_image"
+        image_path = "no_image"
+
     except WebDriverException as e:
         print("[!] WebDriverException: " + str(e))
-        image_name = "no_image"
+        image_path = "no_image"
     
-    return image_name
+    return_dict[key] = image_path if image_path.find(".") == -1 else image_path[1:]
 
 def getInfoFromApiServer(url):
-    # chrome driver 객체 생성
-    chrome_driver = Chrome().initDriver()
+    manager = multiprocessing.Manager()
+    return_dict = manager.dict()
+    jobs = list()
+    analyze_function_list = {
+        "phishtank_result" : Phishtank().start,
+        "malwares_result" : Malwares().start,
+        "virustotal_reuslt" : Virustotal().start,
+        "ipqualityscore_result" : IpQualityScore().start,
+        "google_safe_browsing_result" : GoogleSafeBrowsing().start,
+    }
+    func_list = {
+        "screenshot" : siteScreenShot
+    }
 
-    th1 = Process(target=Phishtank().start, args=(url))
-    th2 = Process(target=Malwares().start, args=(url))
-    th3 = Process(target=Virustotal().start, args=(url))
-    th4 = Process(target=IpQualityScore().start, args=(url))
-    th5 = Process(target=GoogleSafeBrowsing().start, args=(url))
+    for key in func_list.keys():
+        p = multiprocessing.Process(target = func_list[key], args=(url, return_dict, key))
+        jobs.append(p)
+        p.start()
 
-
-
-    with futures.ThreadPoolExecutor() as executor:
-        # 정보 조회
-        virustotal_reuslt = executor.submit(Virustotal().start, (url))
-        google_safe_browsing_result = executor.submit(GoogleSafeBrowsing().start, (url))
-        phishtank_result = executor.submit(Phishtank().start, (url, chrome_driver))
-        malwares_result = executor.submit(Malwares().start, (url))
-        ipqualityscore_result = executor.submit(IpQualityScore().start, (url))
-
-        # chrome_driver.quit()
-
-
-
-    print(virustotal_reuslt.result())
-    print(google_safe_browsing_result.result())
-    print(phishtank_result.result())
-    print(malwares_result.result())
-    print(ipqualityscore_result.result())
+    for key in analyze_function_list.keys():
+        p = multiprocessing.Process(target = analyze_function_list[key], args=(url, return_dict, key))
+        jobs.append(p)
+        p.start()
+    
+    for proc in jobs:
+        proc.join()
+    
+    return return_dict

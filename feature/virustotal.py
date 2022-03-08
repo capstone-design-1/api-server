@@ -9,7 +9,7 @@ class Virustotal:
     def __init__(self):
         pass
 
-    def start(self, url: str) -> dict:
+    def start(self, url: str, return_dict, key: str) -> dict:
         phishing_site = urlparse(url).netloc
         url = "https://www.virustotal.com/api/v3/domains/{}".format(phishing_site)
         headers = {
@@ -18,4 +18,4 @@ class Virustotal:
         }
 
         response = requests.request("GET", url, headers=headers)
-        return response.json()["data"]["attributes"]["last_analysis_stats"]
+        return_dict[key] = response.json()["data"]["attributes"]["last_analysis_stats"]
