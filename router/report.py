@@ -163,6 +163,7 @@ def return400(*args):
             "message" : "uuid 값이 비어 있습니다."
         }, 400
 
+
 def checkMalicious(data) -> int:
     count = 0
 
@@ -182,6 +183,7 @@ def checkMalicious(data) -> int:
     else:
         return 0
 
+
 def siteScreenShot(url: str, return_dict, key: str) -> str:
     try:
         driver = Chrome().initDriver()
@@ -199,6 +201,7 @@ def siteScreenShot(url: str, return_dict, key: str) -> str:
         image_path = "./static/images/no_image.png"
     
     return_dict[key] = image_path[1:]
+    
 
 def getInfoFromApiServer(url):
     manager = multiprocessing.Manager()
