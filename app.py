@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_restx import Resource, Api
 import os
+import sys
 from werkzeug.serving import WSGIRequestHandler
 
 from router.report import api_report
@@ -33,4 +34,8 @@ db.create_all()
 #### db init end ###
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=8080)
+    if len(sys.argv) == 2 and sys.argv[1] == "debug":
+        app.run(debug=True, host="0.0.0.0", port=8080)
+
+    else:
+        app.run(debug=False, host="0.0.0.0", port=8080)
