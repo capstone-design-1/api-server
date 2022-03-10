@@ -10,6 +10,7 @@ search = Namespace("Search")
 parser = reqparse.RequestParser()
 parser.add_argument("limit", type=int, help="전달 받을 목록 개수")
 parser.add_argument("uuid", type=str, help="디바이스에 할당된 UUID")
+parser.add_argument("malicious", type=int, help="악성 URL 결과만 받을지 여부")
 
 
 @search.route("/all")
@@ -25,7 +26,11 @@ class ApiReport(Resource):
         if not args["uuid"]:
             return returnError("uuid 값이 비어 있습니다.", 400)
         
-        url_table_result = sqlAlchemyToJson(UrlInfoTable().selectSearch(args["limit"], args["uuid"]))
+        if args["malicious"] == None or args["malicious"] == 0:
+            url_table_result = sqlAlchemyToJson(UrlInfoTable().selectSearch(args["limit"], args["uuid"], 0))
+        else:
+            url_table_result = sqlAlchemyToJson(UrlInfoTable().selectSearch(args["limit"], args["uuid"], 1))
+
         return_data = []
 
         for i in range(len(url_table_result))[::-1]:
@@ -45,7 +50,7 @@ class ApiReport(Resource):
 
         return Response(json.dumps(return_data), mimetype="application/json")
 
-        
+
 def returnError(message: str, status_code: int):
     return {
         "result" : "error",
