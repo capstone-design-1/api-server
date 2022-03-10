@@ -19,9 +19,14 @@ class UrlInfoTable:
         return result
     
     def selectSearch(self, limit: int, uuid: str, malicious: int):
-        result = UrlInfo.query.filter(UrlInfo.uuid.like("%{}%".format(uuid)))
-                                .filter(UrlInfo.uuid.like(malicious))
-                                .limit(limit).all()
+        if malicious:
+            result = UrlInfo.query.filter(UrlInfo.uuid.like("%{}%".format(uuid))) \
+                                    .filter(UrlInfo.malicious.like(malicious)) \
+                                    .limit(limit).all()
+        else:
+            result = UrlInfo.query.filter(UrlInfo.uuid.like("%{}%".format(uuid))) \
+                                    .limit(limit).all()
+
         return result
     
     def selectAll(self):
