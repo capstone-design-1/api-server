@@ -41,14 +41,15 @@ class ApiReport(Resource):
         try:
             url = base64.b64decode(url).decode()
         except:
-            return return400(2)
+            return returnError("유효하지 않은 URL 입니다.", 400)
 
         if not url:
-            return return400(1)
+            return returnError("URL 값이 비어 있습니다.", 400)
         if not uuid:
-            return return400(3)
+            return returnError("uuid 값이 비어 있습니다.", 400)
+
         if not validateUrlCheck(url):
-            return return400(2)
+            return returnError("URL 형식에 맞지 않습니다.", 400)
 
         # 해당 URL이 분석된 적이 있는지 확인
         result = UrlInfoTable().select(url)
@@ -142,26 +143,12 @@ class ApiReport(Resource):
                 "ipqualityscore" : analyze_result['ipqualityscore_result']
             }
         }, 200
-
-
-def return400(*args):
-    if args[0] == 1:
-        return {
-            "result" : "error",
-            "message" : "URL 값이 비어 있습니다."
-        }, 400
-
-    elif args[0] == 2:
-        return {
-            "result" : "error",
-            "message" : "유효하지 않은 URL 입니다."
-        }, 400
     
-    elif args[0] == 3:
-        return {
-            "result" : "error",
-            "message" : "uuid 값이 비어 있습니다."
-        }, 400
+def returnError(message: str, status_code: int):
+    return {
+        "result" : "error",
+        "message" : message
+    }, status_code
 
 
 def checkMalicious(data) -> int:
