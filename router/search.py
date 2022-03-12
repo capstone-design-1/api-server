@@ -33,7 +33,7 @@ class ApiReport(Resource):
 
         return_data = []
 
-        for i in range(len(url_table_result))[::-1]:
+        for i in range(len(url_table_result)):
             return_data.append({
                 "url_id" : url_table_result[i]["url_id"],
                 "previous_url" : url_table_result[i]["previous_url"],

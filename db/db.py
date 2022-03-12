@@ -22,9 +22,11 @@ class UrlInfoTable:
         if malicious:
             result = UrlInfo.query.filter(UrlInfo.uuid.like("%{}%".format(uuid))) \
                                     .filter(UrlInfo.malicious.like(malicious)) \
+                                    .order_by(UrlInfo.url_id.desc()) \
                                     .limit(limit).all()
         else:
             result = UrlInfo.query.filter(UrlInfo.uuid.like("%{}%".format(uuid))) \
+                                    .order_by(UrlInfo.url_id.desc()) \
                                     .limit(limit).all()
 
         return result
