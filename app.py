@@ -33,6 +33,12 @@ db.app = app
 db.create_all()
 #### db init end ###
 
+
+@app.errorhandler(Exception)
+def server_error(error):
+    print(error)
+    return "test", 500
+
 @app.route("/logging")
 def logging():
     data = open("nohup.out", "r").readlines()

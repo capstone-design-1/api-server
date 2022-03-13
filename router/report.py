@@ -211,7 +211,7 @@ def checkMalicious(data: dict) -> int:
         count += 1
     if data["ipqualityscore"]["malicious"] == True:
         count += 1
-    print(count)
+    
     if count > 2:
         return 1
     else:
