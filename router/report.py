@@ -55,14 +55,12 @@ class ApiReport(Resource):
 
         ###  분석된 이력이 있을 경우
         if result:
-            minute = datetime.datetime.now().minute - result[0].date.minute
+            current = datetime.datetime.now()
             image_name = result[0].site_image
             UrlInfoTable().updateCount(result[0])
 
-
             ###  마지막 분석 결과가 MAX_CACHE_MINUTE 분이 지났을 경우
-            if minute >= MAX_CACHE_MINUTE:
-
+            if current >= result[0].date + datetime.timedelta(minutes=MAX_CACHE_MINUTE):
 
                 ###  API 서버로부터 데이터 받아오기
                 analyze_result = getInfoFromApiServer(url)

@@ -39,7 +39,7 @@ class UrlInfoTable:
         db.session.commit()
     
     def updateData(self, data, is_malicious: int):
-        data.date = datetime.datetime.utcnow()
+        data.date = datetime.datetime.now()
         data.is_malicious = is_malicious
         db.session.commit()
     
