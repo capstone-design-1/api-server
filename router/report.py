@@ -122,7 +122,10 @@ class ApiReport(Resource):
             analyze_result = getInfoFromApiServer(url)
 
             ###  방문한 사이트 스크린 샷
-            image_name = analyze_result["screenshot"]
+            try:
+                image_name = analyze_result["screenshot"]
+            except KeyError:
+                image_name = "/static/images/no_image.png"
 
             ###  피싱 사이트 여부 판단
             is_malicious = checkMalicious({"virustotal" : analyze_result['virustotal_reuslt'],
@@ -236,7 +239,7 @@ def siteScreenShot(url: str, return_dict: dict, key: str) -> str:
     try:
         driver = Chrome().initDriver()
         driver.get(url)
-
+        
         image_path = "./static/images/{}.png".format(uuid.uuid1())
         driver.save_screenshot(image_path)
 
