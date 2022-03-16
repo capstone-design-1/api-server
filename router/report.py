@@ -71,7 +71,7 @@ class ApiReport(Resource):
                 user_info.insertData(uuid, datetime.datetime.now(), url_info_idx)
                 
             ###  DB에 저장된 데이터를 가져옴
-            virustotal_reuslt = json.loads(VirustotalInfo().getData(url_info_idx)[0][1])
+            virustotal_result = json.loads(VirustotalInfo().getData(url_info_idx)[0][1])
             google_safe_browsing_result = json.loads(GoogleInfo().getData(url_info_idx)[0][1])
             phishtank_result = json.loads(PhishtankInfo().getData(url_info_idx)[0][1])
             malwares_result = json.loads(MalwaresInfo().getData(url_info_idx)[0][1])
@@ -83,7 +83,7 @@ class ApiReport(Resource):
                                 url = url,
                                 site_image = image_name,
                                 is_malicious = is_malicious,
-                                virustotal = virustotal_reuslt,
+                                virustotal = virustotal_result,
                                 google_safe_browsing = google_safe_browsing_result,
                                 phishtank = phishtank_result,
                                 malwares = malwares_result,
@@ -102,7 +102,7 @@ class ApiReport(Resource):
                 image_name = "/static/images/no_image.png"
 
             ###  피싱 사이트 여부 판단
-            is_malicious = checkMalicious({"virustotal" : analyze_result['virustotal_reuslt'],
+            is_malicious = checkMalicious({"virustotal" : analyze_result['virustotal_result'],
                                             "google" : analyze_result['google_safe_browsing_result'],
                                             "phishtank" : analyze_result['phishtank_result'],
                                             "malwares" : analyze_result['malwares_result'], 
@@ -113,7 +113,7 @@ class ApiReport(Resource):
             url_info_idx = url_info_table.getUrlData(url)[0][0]
 
             UserInfo().insertData(uuid, datetime.datetime.now(), url_info_idx)
-            VirustotalInfo().insertData(json.dumps(analyze_result['virustotal_reuslt']), url_info_idx)
+            VirustotalInfo().insertData(json.dumps(analyze_result['virustotal_result']), url_info_idx)
             MalwaresInfo().insertData(json.dumps(analyze_result['malwares_result']), url_info_idx)
             GoogleInfo().insertData(json.dumps(analyze_result['google_safe_browsing_result']), url_info_idx)
             PhishtankInfo().insertData(json.dumps(analyze_result['phishtank_result']), url_info_idx)
@@ -124,7 +124,7 @@ class ApiReport(Resource):
                                     url = url,
                                     site_image = image_name,
                                     is_malicious = is_malicious,
-                                    virustotal = analyze_result['virustotal_reuslt'],
+                                    virustotal = analyze_result['virustotal_result'],
                                     google_safe_browsing = analyze_result['google_safe_browsing_result'],
                                     phishtank = analyze_result['phishtank_result'],
                                     malwares = analyze_result['malwares_result'],
@@ -249,7 +249,7 @@ def getInfoFromApiServer(url: str) -> dict:
     analyze_function_list = {
         "phishtank_result" : Phishtank().start,
         "malwares_result" : Malwares().start,
-        "virustotal_reuslt" : Virustotal().start,
+        "virustotal_result" : Virustotal().start,
         "ipqualityscore_result" : IpQualityScore().start,
         "google_safe_browsing_result" : GoogleSafeBrowsing().start,
     }
