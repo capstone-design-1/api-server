@@ -29,7 +29,7 @@ class ApiReport(Resource):
         if args["malicious"] == None or args["malicious"] == 0:
             url_table_result = UrlInfo().getUserData(args["uuid"], 0, args["limit"])
         else:
-            url_table_result = UrlInfo().getUserData(args["uuid"], 0, args["limit"])
+            url_table_result = UrlInfo().getUserData(args["uuid"], 1, args["limit"])
 
         return_data = []
 
