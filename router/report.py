@@ -11,7 +11,8 @@ from feature.malwares import Malwares
 from feature.ipqualityscore import IpQualityScore
 from feature.func import *
 from feature.chromedriver import Chrome
-from db.db import *
+
+from db.table import *
 
 
 
@@ -50,60 +51,33 @@ class ApiReport(Resource):
 
 
         ###  URL 파라미터 값이 분석된 적이 있는지 확인
-        result = UrlInfoTable().select(url)
-
+        url_info_table = UrlInfo()
+        result = url_info_table.getUrlData(url)
 
         ###  분석된 이력이 있을 경우
-        if result:
-            current = datetime.datetime.now()
-            image_name = result[0].site_image
-            UrlInfoTable().updateCount(result[0])
+        if len(result) != 0:
 
-            ###  마지막 분석 결과가 MAX_CACHE_MINUTE 분이 지났을 경우
-            if current >= result[0].date + datetime.timedelta(minutes=MAX_CACHE_MINUTE):
+            ###  사용자 테이블에 URL 분석 정보가 있는지 확인
+            user_info = UserInfo()
+            user_info_count = user_info.findUserData(result, uuid)[0]
+            url_info_idx = result[0][0]
+            
+            ###  사용자 테이블에 URL 분석 정보가 있을 경우
+            if user_info_count[0]:
+                user_info.updateData(url_info_idx, datetime.datetime.now(), uuid)
 
-                ###  API 서버로부터 데이터 받아오기
-                analyze_result = getInfoFromApiServer(url)
-
-                virustotal_reuslt = analyze_result['virustotal_reuslt']
-                google_safe_browsing_result = analyze_result['google_safe_browsing_result']
-                phishtank_result = analyze_result['phishtank_result']
-                malwares_result = analyze_result['malwares_result']
-                ipqualityscore_result = analyze_result['ipqualityscore_result']
-
-
-                ###  피싱 사이트 여부 판단
-                is_malicious = checkMalicious({"virustotal" : virustotal_reuslt,
-                                            "google" : google_safe_browsing_result,
-                                            "phishtank" : phishtank_result,
-                                            "malwares" : malwares_result,
-                                            "ipqualityscore" : ipqualityscore_result})
-
-
-                ###  다시 분석된 정보를 update
-                UrlInfoTable().updateData(result[0], is_malicious)
-                VirustotalTable().update(json.dumps(virustotal_reuslt), result[0].url_id)
-                MalwaresTable().update(json.dumps(malwares_result), result[0].url_id)
-                GoogleTable().update(json.dumps(google_safe_browsing_result), result[0].url_id)
-                PhishtankTable().update(json.dumps(phishtank_result), result[0].url_id)
-                IpQualityScoreTable().update(json.dumps(ipqualityscore_result), result[0].url_id)
-
-
-            ###  마지막 분석 결과가 MAX_CACHE_MINUTE 분을 지나지 않았을 경우
+            ###  사용자 테이블에 URL 분석 정보가 없을 경우
             else:
-                ###  DB에 저장된 데이터를 가져옴
-                virustotal_reuslt = json.loads(VirustotalTable().select(result[0].url_id)[0].detail)
-                google_safe_browsing_result = json.loads(MalwaresTable().select(result[0].url_id)[0].detail)
-                phishtank_result = json.loads(GoogleTable().select(result[0].url_id)[0].detail)
-                malwares_result = json.loads(PhishtankTable().select(result[0].url_id)[0].detail)
-                ipqualityscore_result = json.loads(IpQualityScoreTable().select(result[0].url_id)[0].detail)
-                is_malicious = result[0].malicious
-
-
-            ###  report를 요청한 uuid가 DB에 존재하지 않을 경우, DB에 추가함
-            if uuid not in result[0].uuid:
-                update_uuid_value = result[0].uuid + "," + uuid
-                UrlInfoTable().updateUUID(result[0], update_uuid_value)
+                user_info.insertData(uuid, datetime.datetime.now(), url_info_idx)
+                
+            ###  DB에 저장된 데이터를 가져옴
+            virustotal_reuslt = json.loads(VirustotalInfo().getData(url_info_idx)[0][1])
+            google_safe_browsing_result = json.loads(GoogleInfo().getData(url_info_idx)[0][1])
+            phishtank_result = json.loads(PhishtankInfo().getData(url_info_idx)[0][1])
+            malwares_result = json.loads(MalwaresInfo().getData(url_info_idx)[0][1])
+            ipqualityscore_result = json.loads(IpQalityScoreInfo().getData(url_info_idx)[0][1])
+            is_malicious = result[0][2]
+            image_name = result[0][3]
             
             return returnResultData(
                                 url = url,
@@ -135,25 +109,27 @@ class ApiReport(Resource):
                                             "ipqualityscore" : analyze_result['ipqualityscore_result']}) 
 
             ### 조회된 정보를 DB에 insert
-            UrlInfoTable().insert(url, is_malicious, image_name, uuid)
-            result = UrlInfoTable().select(url)
-            VirustotalTable().insert(json.dumps(analyze_result['virustotal_reuslt']), result[0].url_id)
-            MalwaresTable().insert(json.dumps(analyze_result['malwares_result']), result[0].url_id)
-            GoogleTable().insert(json.dumps(analyze_result['google_safe_browsing_result']), result[0].url_id)
-            PhishtankTable().insert(json.dumps(analyze_result['phishtank_result']), result[0].url_id)
-            IpQualityScoreTable().insert(json.dumps(analyze_result['ipqualityscore_result']), result[0].url_id)
+            url_info_table.insertData(url, is_malicious, image_name)
+            url_info_idx = url_info_table.getUrlData(url)[0][0]
+
+            UserInfo().insertData(uuid, datetime.datetime.now(), url_info_idx)
+            VirustotalInfo().insertData(json.dumps(analyze_result['virustotal_reuslt']), url_info_idx)
+            MalwaresInfo().insertData(json.dumps(analyze_result['malwares_result']), url_info_idx)
+            GoogleInfo().insertData(json.dumps(analyze_result['google_safe_browsing_result']), url_info_idx)
+            PhishtankInfo().insertData(json.dumps(analyze_result['phishtank_result']), url_info_idx)
+            IpQalityScoreInfo().insertData(json.dumps(analyze_result['ipqualityscore_result']), url_info_idx)
 
 
-        return returnResultData(
-                                url = url,
-                                site_image = image_name,
-                                is_malicious = is_malicious,
-                                virustotal = analyze_result['virustotal_reuslt'],
-                                google_safe_browsing = analyze_result['google_safe_browsing_result'],
-                                phishtank = analyze_result['phishtank_result'],
-                                malwares = analyze_result['malwares_result'],
-                                ipqualityscore = analyze_result['ipqualityscore_result']
-                            ), 200
+            return returnResultData(
+                                    url = url,
+                                    site_image = image_name,
+                                    is_malicious = is_malicious,
+                                    virustotal = analyze_result['virustotal_reuslt'],
+                                    google_safe_browsing = analyze_result['google_safe_browsing_result'],
+                                    phishtank = analyze_result['phishtank_result'],
+                                    malwares = analyze_result['malwares_result'],
+                                    ipqualityscore = analyze_result['ipqualityscore_result']
+                                ), 200
 
 
 
