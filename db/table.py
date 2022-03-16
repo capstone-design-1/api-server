@@ -53,13 +53,13 @@ class UrlInfo:
                 SELECT url.url_idx, url.search_url, url.malicious, url.site_image, user.search_time
                 FROM url_info as url
                 JOIN user_info as user
-                ON url.url_idx = user.user_idx
+                ON url.url_idx = user.url_idx
                 WHERE
-                url.malicious = ?
+                url.malicious = ? AND user.uuid = ?
                 ORDER BY user.search_time DESC
                 LIMIT ?
             """
-            cur.execute(query, (malicious, limit,))
+            cur.execute(query, (malicious, uuid, limit,))
 
             result = cur.fetchall()
 
@@ -68,11 +68,13 @@ class UrlInfo:
                 SELECT url.url_idx, url.search_url, url.malicious, url.site_image, user.search_time
                 FROM url_info as url
                 JOIN user_info as user
-                ON url.url_idx = user.user_idx
+                ON url.url_idx = user.url_idx
+                WHERE
+                user.uuid = ?
                 ORDER BY user.search_time DESC
                 LIMIT ?
             """
-            cur.execute(query, (limit,))
+            cur.execute(query, (uuid, limit,))
 
             result = cur.fetchall()
         
