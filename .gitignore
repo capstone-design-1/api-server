@@ -4,3 +4,4 @@ db.sqlite
 *.damx
 nohup.out
 *.png
+info.db

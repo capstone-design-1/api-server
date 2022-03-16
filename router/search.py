@@ -2,8 +2,7 @@ from flask import Flask, Response
 from flask_restx import Resource, Api, Namespace, reqparse
 import json
 
-from db.db import *
-from feature.func import sqlAlchemyToJson
+from db.table import *
 
 search = Namespace("Search")
 
@@ -26,25 +25,27 @@ class ApiReport(Resource):
         if not args["uuid"]:
             return returnError("uuid 값이 비어 있습니다.", 400)
         
+        # TODO selectSearch 함수 수정해야 됨
         if args["malicious"] == None or args["malicious"] == 0:
-            url_table_result = sqlAlchemyToJson(UrlInfoTable().selectSearch(args["limit"], args["uuid"], 0))
+            url_table_result = UrlInfo().getUserData(args["uuid"], 0, args["limit"])
         else:
-            url_table_result = sqlAlchemyToJson(UrlInfoTable().selectSearch(args["limit"], args["uuid"], 1))
+            url_table_result = UrlInfo().getUserData(args["uuid"], 1, args["limit"])
 
         return_data = []
 
         for i in range(len(url_table_result)):
             return_data.append({
-                "url_id" : url_table_result[i]["url_id"],
-                "previous_url" : url_table_result[i]["previous_url"],
+                "url_id" : url_table_result[i]["url_idx"],
+                "search_url" : url_table_result[i]["search_url"],
                 "site_image" : url_table_result[i]["site_image"],
                 "malicious" : url_table_result[i]["malicious"],
-                "init_search_date" : url_table_result[i]["date"],
+                "search_time" : url_table_result[i]["search_time"],
                 "detail" : {
-                    "virustotal" : sqlAlchemyToJson(VirustotalTable().selectUrlId(args["limit"], url_table_result[i]["url_id"]))[0]["detail"],
-                    "malwares" : sqlAlchemyToJson(MalwaresTable().selectUrlId(args["limit"], url_table_result[i]["url_id"]))[0]["detail"],
-                    "google" : sqlAlchemyToJson(GoogleTable().selectUrlId(args["limit"], url_table_result[i]["url_id"]))[0]["detail"],
-                    "phishtank" : sqlAlchemyToJson(PhishtankTable().selectUrlId(args["limit"], url_table_result[i]["url_id"]))[0]["detail"]
+                    "virustotal" : json.loads(VirustotalInfo().getData(url_table_result[i]["url_idx"])[0][1]),
+                    "malwares" : json.loads(MalwaresInfo().getData(url_table_result[i]["url_idx"])[0][1]),
+                    "google" : json.loads(GoogleInfo().getData(url_table_result[i]["url_idx"])[0][1]),
+                    "phishtank" : json.loads(PhishtankInfo().getData(url_table_result[i]["url_idx"])[0][1]),
+                    "ipqualityscore" : json.loads(IpQalityScoreInfo().getData(url_table_result[i]["url_idx"])[0][1])
                 }
             })
 
